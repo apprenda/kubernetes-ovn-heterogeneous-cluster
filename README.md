@@ -45,15 +45,12 @@ Let's provision the master VM:
 gcloud compute instances create "sig-windows-master" \
     --zone "us-east1-d" \
     --machine-type "custom-2-2048" \
-    --subnet "default" \
     --can-ip-forward \
-    --maintenance-policy "MIGRATE" \
     --tags "https-server" \
     --image "ubuntu-1604-xenial-v20170125" \
     --image-project "ubuntu-os-cloud" \
     --boot-disk-size "50" \
     --boot-disk-type "pd-ssd" \
-    --boot-disk-device-name "sig-windows-master"
 ```
 
 When it's ready, SSH into it:
@@ -68,8 +65,8 @@ Let's install OVS/OVN:
 curl -fsSL https://yum.dockerproject.org/gpg | apt-key add -
 echo "deb https://apt.dockerproject.org/repo ubuntu-xenial main" > sudo tee /etc/apt/sources.list.d/docker.list
 
-apt-get update
-apt-get install -y docker.io dkms
+apt update
+apt install -y docker.io dkms
 ```
 
 ```sh
@@ -103,7 +100,7 @@ Create the OVS bridge interface:
 ```sh
 export TUNNEL_MODE=geneve
 export LOCAL_IP=10.142.0.2
-export MASTER_IP=10.142.0.2
+export MASTER_IP=$LOCAL_IP
 
 ovs-vsctl set Open_vSwitch . external_ids:ovn-remote="tcp:$MASTER_IP:6642" \
   external_ids:ovn-nb="tcp:$MASTER_IP:6641" \
@@ -208,7 +205,8 @@ ovs-vsctl set Open_vSwitch . \
 
 ln -fs /etc/kubernetes/tls/ca.pem /etc/openvswitch/k8s-ca.crt
 
-apt-get install -y python-pip
+apt install -y python-pip
+pip install --upgrade pip
 
 cd ~
 git clone https://github.com/openvswitch/ovn-kubernetes
@@ -265,14 +263,11 @@ Let's provision the Linux worker VM:
 gcloud compute instances create "sig-windows-worker-linux" \
     --zone "us-east1-d" \
     --machine-type "custom-2-2048" \
-    --subnet "default" \
     --can-ip-forward \
-    --maintenance-policy "MIGRATE" \
     --image "ubuntu-1604-xenial-v20170125" \
     --image-project "ubuntu-os-cloud" \
     --boot-disk-size "50" \
     --boot-disk-type "pd-ssd" \
-    --boot-disk-device-name "sig-windows-worker-linux"
 ```
 
 When it's ready, SSH into it:
@@ -287,8 +282,8 @@ Let's install OVS/OVN:
 curl -fsSL https://yum.dockerproject.org/gpg | apt-key add -
 echo "deb https://apt.dockerproject.org/repo ubuntu-xenial main" > sudo tee /etc/apt/sources.list.d/docker.list
 
-apt-get update
-apt-get install -y docker.io dkms
+apt update
+apt install -y docker.io dkms
 ```
 
 ```sh
@@ -316,7 +311,7 @@ Finally, reboot:
 reboot
 ```
 
-SSH again into the machine and let's proceed.
+SSH again into the machine, become root and let's proceed.
 
 Create the OVS bridge interface:
 ```sh
@@ -419,7 +414,8 @@ curl -Lskj -o cni.tar.gz https://github.com/containernetworking/cni/releases/dow
 tar zxf cni.tar.gz
 rm -f cni.tar.gz
 
-apt-get install -y python-pip
+apt install -y python-pip
+pip install --upgrade pip
 
 cd ~
 git clone https://github.com/openvswitch/ovn-kubernetes
@@ -437,10 +433,12 @@ ovn-k8s-overlay minion-init \
 
 **TODO** **must** add hwaddress to /etc/network/interfaces.
 
-By this time, your Linux worker node is ready to run Kubernete workloads:
+By this time, your Linux worker node is ready to run Kubernetes workloads:
 ```sh
 systemctl enable kubelet
 systemctl start kubelet
+kubectl get nodes
+kubectl -n kube-system get pods
 ```
 
 Let's proceed to setup the Windows worker node.
@@ -456,14 +454,11 @@ Let's provision the Windows worker VM:
 gcloud compute instances create "sig-windows-worker-windows-1" \
   --zone "us-east1-d" \
   --machine-type "custom-4-4096" \
-  --subnet "default" \
   --can-ip-forward \
-  --maintenance-policy "MIGRATE" \
   --image "windows-server-2016-dc-v20170117" \
   --image-project "windows-cloud" \
   --boot-disk-size "50" \
   --boot-disk-type "pd-ssd" \
-  --boot-disk-device-name "sig-windows-worker-windows-1"
 ```
 
 After VM is provisioned, establish a new connection to it. How one does this is out of the scope of this document.
@@ -482,6 +477,9 @@ cmd /c 'msiexec /i OpenvSwitch_prerelease.msi /qn'
 netsh netkvm setparam 0 *RscIPv4 0
 netsh netkvm restart 0
 
+# You will need to reconnect your RDP session after restarting the netkvm
+# driver.
+
 Install-Module -Name DockerMsftProvider -Repository PSGallery -Force
 Install-Package -Name docker -ProviderName DockerMsftProvider
 ```
@@ -493,10 +491,11 @@ Restart-Computer -Force
 
 Re-establish connection to the VM.
 
-Now, one needs to set-up the overlay (OVN) network. On a per node basis, copy `worker/windows/install_ovn.ps1` over to the Windows node and edit its contents accordingly before running the Powershell script.
+Now, one needs to set-up the overlay (OVN) network. On a per node basis, copy `worker/windows/install_ovn.ps1` over to `C:\ovs` on the Windows node and edit its contents accordingly before running the Powershell script.
 
 Then, start a new Powershell session with administrator privileges and execute:
 ```sh
+cd C:\ovs
 .\install_ovn.ps1
 ```
 
@@ -517,14 +516,23 @@ Run `kube-proxy`:
 ```sh
 New-VMSwitch -Name KubeProxySwitch -SwitchType Internal
 
+cd C:\kubernetes
 $env:INTERFACE_TO_ADD_SERVICE_IP = "KubeProxySwitch"
 .\kube-proxy.exe -v=3 --proxy-mode=userspace --hostname-override=sig-windows-worker-windows-1 --bind-address=10.142.0.5 --master=http://10.142.0.2:8080 --cluster-cidr=10.244.0.0/16
 ```
 
 And the `kubelet`:
 ```sh
+cd C:\kubernetes
 $env:CONTAINER_NETWORK = "external"
 .\kubelet.exe -v=3 --address=10.142.0.9 --hostname-override=10.142.0.9 --cluster_dns=10.100.0.10 --cluster_domain=cluster.local --pod-infra-container-image="apprenda/pause" --resolv-conf="" --api_servers=http://10.142.0.2:8080
+```
+
+If everything is working, you should see all three nodes and several pods in the output of these kubectl commands:
+```sh
+cd C:\kubernetes
+.\kubectl.exe -s 10.142.0.2:8080 get nodes
+.\kubectl.exe -s 10.142.0.2:8080 -n kube-system get pods
 ```
 
 ## Troubleshooting
@@ -541,8 +549,8 @@ Look in [ovn-kubernetes issues](https://github.com/openvswitch/ovn-kubernetes/is
 
 As `root`, run:
 ```
-apt-get update
-apt-get install -y build-essential fakeroot dkms \
+apt update
+apt install -y build-essential fakeroot dkms \
 autoconf automake debhelper dh-autoreconf libssl-dev libtool \
 python-all python-twisted-conch python-zopeinterface \
 graphviz
