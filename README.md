@@ -506,13 +506,12 @@ Restart-Computer -Force
 
 Re-establish connection to the VM.
 
-Now, one needs to set-up the overlay (OVN) network. On a per node basis, copy `worker/windows/install_ovn.ps1` over to `C:\ovs` on the Windows node and **edit its contents accordingly before running the Powershell script**.
-
+Now, one needs to set-up the overlay (OVN) network. On a per node basis, download `install_ovn.ps1` over to `C:\ovs` on the Windows node.
 ```
 cd c:\ovs
 Start-BitsTransfer https://raw.githubusercontent.com/apprenda/kubernetes-ovn-heterogeneous-cluster/master/worker/windows/install_ovn.ps1
 ```
-
+Now, **edit the contents of install_ovn.ps1 accordingly before running the Powershell script**.
 Then, start a new Powershell session with administrator privileges and execute:
 ```sh
 cd C:\ovs
@@ -523,14 +522,13 @@ We are now ready to set-up Kubernetes Windows worker node.
 
 ### Kubernetes set-up
 
-On a per node basis, copy `worker/windows/install_k8s.ps1` over to the Windows node and **edit its contents accordingly before running the Powershell script**.
-
+On a per node basis, download `install_k8s.ps1` over to `c:\ovs` on the Windows node.
 ```
 cd c:\ovs
 Start-BitsTransfer https://raw.githubusercontent.com/apprenda/kubernetes-ovn-heterogeneous-cluster/master/worker/windows/install_k8s.ps1
 ```
-
-Now, let's install Kubernetes:
+Now, **edit the contents of install_k8s.ps1 accordingly before running the Powershell script**.
+Then, start a new Powershell session with administrator privileges to install Kubernetes:
 ```sh
 .\install_k8s.ps1
 ```
