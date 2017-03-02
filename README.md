@@ -462,6 +462,7 @@ Let's proceed to setup the Windows worker node.
 **Attention**:
 * Connectivity may flicker and you may need to reconnect your RDP session. This is expected at least a couple times when setting up networking interfaces.
 * Make sure Windows Server 2016 Routing feature is installed. You can find information on how to do it [here](http://protechgurus.com/configure-lan-routing-windows-server-2016/) and if you're following said instructions **make sure** you just install the feature as there's no need, nor have we tried, enabling LAN Routing, etc.
+* Make sure to disable the Windows Firewall for all profiles. Follow the instructions at https://technet.microsoft.com/en-us/library/cc766337%28v=ws.10%29.aspx for more details on how to do this.
 
 For the sake of simplicity when setting up Windows node, we will not be relying on TLS for now.
 
