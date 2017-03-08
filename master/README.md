@@ -9,10 +9,10 @@ gcloud compute instances create "sig-windows-master" \
     --machine-type "custom-2-2048" \
     --can-ip-forward \
     --tags "https-server" \
-    --image "ubuntu-1604-xenial-v20170125" \
+    --image-family "ubuntu-1604-lts" \
     --image-project "ubuntu-os-cloud" \
     --boot-disk-size "50" \
-    --boot-disk-type "pd-ssd" \
+    --boot-disk-type "pd-ssd"
 ```
 
 When it's ready, SSH into it:
@@ -56,7 +56,7 @@ Finally, reboot:
 reboot
 ```
 
-SSH again into the machine and let's proceed.
+SSH again into the machine, become root and proceed to configure OVS/OVN.
 
 **ATTENTION**:
 * From now on, it's assumed you're logged-in as `root`.
@@ -124,7 +124,6 @@ sed -i"*" "s|__MASTER_IP__|$MASTER_IP|g" tmp/openssl.cnf
 
 sed -i"*" "s|__MASTER_INTERNAL_IP__|$MASTER_INTERNAL_IP|g" tmp/manifests/*.yaml
 
-sed -i"*" "s|__HOSTNAME__|$HOSTNAME|g" tmp/manifests/proxy.yaml
 sed -i"*" "s|__HOSTNAME__|$HOSTNAME|g" tmp/systemd/kubelet.service
 sed -i"*" "s|__HOSTNAME__|$HOSTNAME|g" tmp/make-certs
 sed -i"*" "s|__HOSTNAME__|$HOSTNAME|g" tmp/openssl.cnf
@@ -218,12 +217,11 @@ kubectl -n kube-system get pods
 
 You should see something like:
 ```
-NAME                                 READY     STATUS    RESTARTS   AGE
-kube-apiserver-10.142.0.2            1/1       Running   0          9m
-kube-controller-manager-10.142.0.2   1/1       Running   0          9m
-kube-dns-555682531-5pp48             0/3       Pending   0          1m
-kube-proxy-10.142.0.2                1/1       Running   0          9m
-kube-scheduler-10.142.0.2            1/1       Running   0          9m
+NAME                                         READY     STATUS    RESTARTS   AGE
+kube-apiserver-sig-windows-master            1/1       Running   0          9m
+kube-controller-manager-sig-windows-master   1/1       Running   0          9m
+kube-dns-555682531-5pp48                     0/3       Pending   0          1m
+kube-scheduler-sig-windows-master            1/1       Running   0          9m
 ```
 
 [**Go back**](../README.md#cluster-deployment).

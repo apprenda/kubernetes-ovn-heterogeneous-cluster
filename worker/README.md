@@ -6,19 +6,19 @@
 
 Let's provision the Linux worker VM:
 ```sh
-gcloud compute instances create "sig-windows-worker-linux" \
+gcloud compute instances create "sig-windows-worker-linux-1" \
     --zone "us-east1-d" \
     --machine-type "custom-2-2048" \
     --can-ip-forward \
-    --image "ubuntu-1604-xenial-v20170125" \
+    --image-family "ubuntu-1604-lts" \
     --image-project "ubuntu-os-cloud" \
     --boot-disk-size "50" \
-    --boot-disk-type "pd-ssd" \
+    --boot-disk-type "pd-ssd"
 ```
 
 When it's ready, SSH into it:
 ```sh
-gcloud compute ssh --zone "us-east1-d" "sig-windows-worker-linux"
+gcloud compute ssh --zone "us-east1-d" "sig-windows-worker-linux-1"
 ```
 
 **ATTENTION**: From now on, it's assumed you're logged-in as `root`.
@@ -57,7 +57,7 @@ Finally, reboot:
 reboot
 ```
 
-SSH again into the machine, become root and let's proceed.
+SSH again into the machine, become root and proceed to configure OVS/OVN.
 
 **ATTENTION**:
 * From now on, it's assumed you're logged-in as `root`.
@@ -100,7 +100,7 @@ cd ~/kubernetes-ovn-heterogeneous-cluster/worker/linux
 
 rm -rf tmp
 mkdir tmp
-cp -R ../make-certs ../openssl.cnf ../kubeconfig.yaml manifests systemd tmp/
+cp -R ../make-certs ../openssl.cnf ../kubeconfig.yaml ../../master/manifests systemd tmp/
 
 export HOSTNAME=`hostname`
 export K8S_VERSION=1.5.3
@@ -109,23 +109,17 @@ export K8S_NODE_POD_SUBNET=10.244.2.0/24
 export K8S_DNS_SERVICE_IP=10.100.0.10
 export K8S_DNS_DOMAIN=cluster.local
 
-sed -i"*" "s|__K8S_VERSION__|$K8S_VERSION|g" tmp/manifests/proxy.yaml
 sed -i"*" "s|__K8S_VERSION__|$K8S_VERSION|g" tmp/systemd/kubelet.service
 
-sed -i"*" "s|__MASTER_IP__|$MASTER_IP|g" tmp/manifests/proxy.yaml
 sed -i"*" "s|__MASTER_IP__|$MASTER_IP|g" tmp/systemd/kubelet.service
 sed -i"*" "s|__MASTER_IP__|$MASTER_IP|g" tmp/openssl.cnf
 sed -i"*" "s|__MASTER_IP__|$MASTER_IP|g" tmp/kubeconfig.yaml
 
-sed -i"*" "s|__LOCAL_IP__|$LOCAL_IP|g" tmp/manifests/proxy.yaml
 sed -i"*" "s|__LOCAL_IP__|$LOCAL_IP|g" tmp/systemd/kubelet.service
 sed -i"*" "s|__LOCAL_IP__|$LOCAL_IP|g" tmp/openssl.cnf
 
-sed -i"*" "s|__HOSTNAME__|$HOSTNAME|g" tmp/manifests/proxy.yaml
 sed -i"*" "s|__HOSTNAME__|$HOSTNAME|g" tmp/systemd/kubelet.service
 sed -i"*" "s|__HOSTNAME__|$HOSTNAME|g" tmp/make-certs
-
-sed -i"*" "s|__K8S_POD_SUBNET__|$K8S_POD_SUBNET|g" tmp/manifests/proxy.yaml
 
 sed -i"*" "s|__K8S_DNS_SERVICE_IP__|$K8S_DNS_SERVICE_IP|g" tmp/systemd/kubelet.service
 sed -i"*" "s|__K8S_DNS_DOMAIN__|$K8S_DNS_DOMAIN|g" tmp/systemd/kubelet.service
@@ -208,10 +202,10 @@ gcloud compute instances create "sig-windows-worker-windows-1" \
   --zone "us-east1-d" \
   --machine-type "custom-4-4096" \
   --can-ip-forward \
-  --image "windows-server-2016-dc-v20170117" \
+  --image-family "windows-2016" \
   --image-project "windows-cloud" \
   --boot-disk-size "50" \
-  --boot-disk-type "pd-ssd" \
+  --boot-disk-type "pd-ssd"
 ```
 
 After VM is provisioned, establish a new connection to it. How one does this is out of the scope of this document.
@@ -270,7 +264,7 @@ Then, start a new Powershell session with administrator privileges to install Ku
 Before you run the kubelet, **edit the flag values below according to your environment**:
 ```sh
 $env:CONTAINER_NETWORK = "external"
-.\kubelet.exe -v=3 --hostname-override=sig-windows-worker-windows --cluster_dns=10.100.0.10 --cluster_domain=cluster.local --pod-infra-container-image="apprenda/pause" --resolv-conf="" --api_servers="http://10.142.0.2:8080"
+.\kubelet.exe -v=3 --hostname-override=sig-windows-worker-windows-1 --cluster_dns=10.100.0.10 --cluster_domain=cluster.local --pod-infra-container-image="apprenda/pause" --resolv-conf="" --api_servers="http://10.142.0.2:8080"
 ```
 
 If everything is working, you should see all three nodes and several pods in the output of these kubectl commands:

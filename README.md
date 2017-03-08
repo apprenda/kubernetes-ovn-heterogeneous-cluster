@@ -29,9 +29,10 @@ Having that said, here are the requirements:
 
 ## Cluster deployment
 
-* [Deploy master node](master), where the OVS/OVN and Kubernetes master components will run.
+Follow these steps to deploy your cluster:
+* [Deploy the master node](master), where the OVS/OVN and Kubernetes master components will run.
 * [Deploy worker nodes, Linux and Windows](worker), where the Kubernetes workloads will run.
-* [Deploy gateway node](gateway), needed for pod container access to the Internet **and** for exposing services to the Internet (through services with `NodePort` load-balancer type).
+* [Deploy a gateway node](gateway), needed for pod container access to the Internet **and** for exposing services to the Internet (through services with `NodePort` load-balancer type).
 
 ## Troubleshooting
 
