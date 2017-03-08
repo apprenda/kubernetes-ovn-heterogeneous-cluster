@@ -7,7 +7,7 @@ $PUBLIC_IP="10.142.0.9" # IP of $INTERFACE_ALIAS (must be able to reach other ho
 
 $HOSTNAME=hostname
 $K8S_ZIP=".\k8s_ovn_service_prerelease.zip" # Location of k8s OVN binaries (DO NOT CHANGE unless you know what you're doing)
-$OVS_PATH="C:\Program Files (x86)\Open vSwitch\bin" # Default instalation directory for OVS (DO NOT CHANGE unless you know what you're doing)
+$OVS_PATH="C:\Program Files (x86)\Open vSwitch\bin" # Default installation directory for OVS (DO NOT CHANGE unless you know what you're doing)
 
 Stop-Service docker
 Get-ContainerNetwork | Remove-ContainerNetwork -Force

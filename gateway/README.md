@@ -2,16 +2,16 @@
 
 ## Node set-up
 
-Let's provision the master VM:
+Let's provision the gateway VM:
 ```sh
 gcloud compute instances create "sig-windows-gw" \
     --zone "us-east1-d" \
     --machine-type "custom-2-2048" \
     --can-ip-forward \
-    --image "ubuntu-1604-xenial-v20170125" \
+    --image-family "ubuntu-1604-lts" \
     --image-project "ubuntu-os-cloud" \
     --boot-disk-size "50" \
-    --boot-disk-type "pd-ssd" \
+    --boot-disk-type "pd-ssd"
 ```
 
 When it's ready, SSH into it:
@@ -34,8 +34,8 @@ Let's install OVS/OVN:
 curl -fsSL https://yum.dockerproject.org/gpg | apt-key add -
 echo "deb https://apt.dockerproject.org/repo ubuntu-xenial main" > sudo tee /etc/apt/sources.list.d/docker.list
 
-apt-get update
-apt-get install -y dkms
+apt update
+apt install -y dkms
 ```
 
 ```sh
@@ -62,7 +62,7 @@ Finally, reboot:
 reboot
 ```
 
-SSH again into the machine and let's proceed.
+SSH again into the machine and proceed to configure OVS/OVN.
 
 Create the OVS bridge interface:
 ```sh
@@ -122,7 +122,7 @@ ovs-vsctl set Open_vSwitch . \
 
 ln -fs /etc/kubernetes/tls/ca.pem /etc/openvswitch/k8s-ca.crt
 
-apt-get install -y python-pip
+apt install -y python-pip
 
 pip install --upgrade pip
 
@@ -132,6 +132,8 @@ cd ovn-kubernetes
 
 pip install --upgrade --prefix=/usr/local --ignore-installed .
 
+# This command will print "RTNETLINK answers: Network is unreachable" and
+# "RTNETLINK answers: File exists"; these messages are expected.
 ovn-k8s-util nics-to-bridge $NIC && dhclient br$NIC
 
 ovn-k8s-overlay gateway-init \

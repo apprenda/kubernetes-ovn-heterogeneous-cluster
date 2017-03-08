@@ -34,6 +34,10 @@ Follow these steps to deploy your cluster:
 * [Deploy worker nodes, Linux and Windows](worker), where the Kubernetes workloads will run.
 * [Deploy a gateway node](gateway), needed for pod container access to the Internet **and** for exposing services to the Internet (through services with `NodePort` load-balancer type).
 
+## Demo application
+
+[Heterogeneous Kubernetes cluster demo](demo).
+
 ## Troubleshooting
 
 Some pending issues:
