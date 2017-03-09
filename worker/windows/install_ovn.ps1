@@ -16,7 +16,7 @@ Start-Service docker
 
 docker network create -d transparent --gateway $GATEWAY_IP --subnet $SUBNET -o com.docker.network.windowsshim.interface=$INTERFACE_ALIAS external
 
-$a = Get-NetAdapter
+$a = Get-NetAdapter | where Name -Match HNSTransparent
 rename-netadapter $a[0].name -newname HNSTransparent
 
 stop-service ovs-vswitchd; disable-vmswitchextension "cloudbase open vswitch extension";
