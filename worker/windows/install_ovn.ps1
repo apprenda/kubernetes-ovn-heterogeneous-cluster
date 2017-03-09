@@ -44,6 +44,6 @@ netsh interface ipv4 set subinterface "HNSTransparent" mtu=1430 store=persistent
 #expand k8s PoC binaries and create service
 Expand-Archive -Force -Path "$($K8S_ZIP)" -DestinationPath "$($OVS_PATH)"
 
-cmd /c 'sc create ovn-k8s binPath= "\"C:\Program Files (x86)\Open vSwitch\bin\servicewrapper.exe\" ovn-k8s \"C:\Program Files (x86)\Open vSwitch\bin\k8s_ovn.exe\"" type= own start= auto error= ignore depend= Winmgmt displayname= "OVN Watcher" obj= LocalSystem'
+cmd /c 'sc create ovn-k8s binPath= "\"C:\Program Files (x86)\Open vSwitch\bin\servicewrapper.exe\" ovn-k8s \"C:\Program Files (x86)\Open vSwitch\bin\k8s_ovn.exe\"" type= own start= auto error= ignore depend= ovsdb-server/ovs-vswitchd/ovn-controller displayname= "OVN Watcher" obj= LocalSystem'
 windows-init.exe windows-init --node-name $HOSTNAME --minion-switch-subnet $SUBNET --cluster-ip-subnet $CLUSTER_IP_SUBNET
 start-service ovn-k8s
