@@ -88,11 +88,22 @@ We are now ready to set-up Kubernetes Linux worker node.
 
 ### Kubernetes set-up
 
+**CA keypair set-up**:
+
+In order to generate certificates for the worker node, and to establish trust between
+the kubelet and the API server, we need to copy the CA keypair from the master node to
+the worker node. On GCE, and _only for Linux VMs_, you may use the `gcloud compute copy-files` command to copy
+the keypair from the master node to your local machine, and then from your local machine
+to the new worker node.
+
 **Attention**:
 * From now on, it's assumed you're logged-in as `root`.
-* You **must** copy the CA keypair that's available in the master node over the following paths:
+* You **must** copy the CA keypair that's available in the master node over to the 
+worker node at the following paths:
   * /etc/kubernetes/tls/ca.pem
   * /etc/kubernetes/tls/ca-key.pem
+* If you exited your shell, make sure to export the environment variables defined in previous steps
+before proceeding.
 * Pay attention to the environment variables below
 
 ```sh
@@ -208,7 +219,8 @@ gcloud compute instances create "sig-windows-worker-windows-1" \
   --boot-disk-type "pd-ssd"
 ```
 
-After VM is provisioned, establish a new connection to it. How one does this is out of the scope of this document.
+After VM is provisioned, establish a new connection to it. If you are running on GCE,
+you may find instructions on how to RDP into the Windows machine [here](https://cloud.google.com/compute/docs/instances/windows/connecting-to-windows-instance).
 
 Now, start a new Powershell session with administrator privileges and execute:
 ```sh
