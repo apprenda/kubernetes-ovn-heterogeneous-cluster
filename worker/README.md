@@ -228,10 +228,10 @@ cd \
 mkdir ovs
 cd ovs
 
-Start-BitsTransfer https://cloudbase.it/downloads/OpenvSwitch_prerelease.msi
+Start-BitsTransfer https://cloudbase.it/downloads/openvswitch-hyperv-2.7.0-certified.msi
 Start-BitsTransfer https://cloudbase.it/downloads/k8s_ovn_service_prerelease.zip
 
-cmd /c 'msiexec /i OpenvSwitch_prerelease.msi /qn'
+cmd /c 'msiexec /i openvswitch-hyperv-2.7.0-certified.msi ADDLOCAL="OpenvSwitchCLI,OpenvSwitchDriver,OVNHost" /qn'
 
 netsh netkvm setparam 0 *RscIPv4 0
 netsh netkvm restart 0
